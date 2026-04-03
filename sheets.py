@@ -32,4 +32,17 @@ def append_customer(data: dict, spreadsheet_id: str, sheet_name: str, credential
     for field, col_idx in COLUMN_POSITIONS.items():
         row[col_idx - 1] = data.get(field, '')
 
-    ws.append_row(row, value_input_option='USER_ENTERED')
+    # 4행부터 첫 번째 빈 행 찾기
+    START_ROW = 4
+    all_values = ws.get_all_values()
+    target_row = START_ROW
+    for i in range(START_ROW - 1, len(all_values)):
+        if not any(all_values[i]):
+            target_row = i + 1
+            break
+    else:
+        target_row = len(all_values) + 1
+        if target_row < START_ROW:
+            target_row = START_ROW
+
+    ws.update(f'A{target_row}', [row], value_input_option='USER_ENTERED')
