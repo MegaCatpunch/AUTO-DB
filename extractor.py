@@ -2,7 +2,7 @@ import re
 from datetime import date
 
 
-COLUMN_ORDER = ['구분', '유형', '접수월', '접수일', '배정일', '이름', '희망지역', '연락처', '최종담당', '첫메모', 'A급 DB']
+COLUMN_ORDER = ['구분', '유형', '접수월', '접수일', '배정일', '이름', '희망지역', '연락처', '최종담당', 'J열', 'N열', 'Q열', '첫메모', 'A급 DB']
 
 
 def parse_customer_info(text: str) -> dict:
@@ -46,6 +46,19 @@ def parse_customer_info(text: str) -> dict:
             if len(parts) >= 2:
                 result['유형'] = parts[1]
             break
+
+    # --- J열 / N열 / Q열: 기본값 및 특수 키워드 처리 ---
+    result['J열'] = '진행중'
+    result['Q열'] = '진성'
+
+    if '허수' in text:
+        result['J열'] = '관리종료'
+        result['N열'] = '반납'
+        result['Q열'] = '허수'
+    elif '조건미달' in text:
+        result['J열'] = '반납'
+        result['N열'] = '반납'
+        result['Q열'] = '조건미달'
 
     # --- A급 DB: 텍스트 전체에 "A" 포함 시 체크 ---
     if re.search(r'\bA\b', text):
