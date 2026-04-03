@@ -32,13 +32,10 @@ def append_customer(data: dict, spreadsheet_id: str, sheet_name: str, credential
     for field, col_idx in COLUMN_POSITIONS.items():
         row[col_idx - 1] = data.get(field, '')
 
-    # 마지막 데이터 행 다음 빈 행에 입력 (최소 4행부터)
+    # A열(구분) 기준으로 마지막 데이터 행 찾기 (서식만 있는 빈 셀 무시)
     START_ROW = 4
-    all_values = ws.get_all_values()
-    last_filled = 0
-    for i, row_vals in enumerate(all_values):
-        if any(row_vals):
-            last_filled = i + 1  # 1-indexed
+    col_a = ws.col_values(1)  # 실제 값이 있는 셀만 반환
+    last_filled = len(col_a)
     target_row = max(START_ROW, last_filled + 1)
 
     ws.update(f'A{target_row}', [row], value_input_option='USER_ENTERED')
