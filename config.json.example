@@ -1,0 +1,5 @@
+{
+  "spreadsheet_id": "여기에_구글_스프레드시트_ID_입력",
+  "sheet_name": "시트1",
+  "credentials_path": "credentials.json"
+}

@@ -1,0 +1,19 @@
+# 구글 API 인증 파일 (절대 커밋하지 마세요)
+credentials.json
+config.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
