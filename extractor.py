@@ -35,7 +35,7 @@ def parse_customer_info(text: str) -> dict:
         m = re.match(r'^(\d{1,2})/(\d{1,2})$', non_empty[0])
         if m:
             result['접수월'] = m.group(1)
-            result['접수일'] = m.group(2)
+            result['접수일'] = non_empty[0]   # "4/2" 형태 그대로 입력
 
     # --- 구분 / 유형: 두 번째 줄 "구분 유형" 형식 ---
     if len(non_empty) > 1:
@@ -44,19 +44,21 @@ def parse_customer_info(text: str) -> dict:
             result['구분'] = parts[0]
         if len(parts) >= 2:
             result['유형'] = parts[1]
-            # 유형에 "A" 포함 시 A급 DB 체크
-            if _is_grade_a(parts[1]):
-                result['A급 DB'] = 'O'
 
-    # --- 이름 (성함) ---
+    # --- A급 DB: 텍스트 전체에 "A" 포함 시 체크 ---
+    if re.search(r'\bA\b', text):
+        result['A급 DB'] = 'O'
+
+    # --- 이름 (성함): 성별 제거 ---
     m = re.search(r'성함\s*:\s*(.+)', text)
     if m:
-        result['이름'] = m.group(1).strip()
+        name = m.group(1).strip()
+        result['이름'] = re.sub(r'\s*\([남녀]\)', '', name).strip()
 
-    # --- 희망지역 ---
+    # --- 희망지역: 띄어쓰기 제거 ---
     m = re.search(r'희망\s*지역\s*:\s*(.+)', text)
     if m:
-        result['희망지역'] = m.group(1).strip()
+        result['희망지역'] = m.group(1).strip().replace(' ', '')
 
     # --- 최종담당: ">" 다음에 오는 이름 ---
     m = re.search(r'>\s*(.+)', text)
@@ -92,8 +94,3 @@ def _today() -> str:
     """오늘 날짜를 M/D 형식으로 반환합니다."""
     today = date.today()
     return f'{today.month}/{today.day}'
-
-
-def _is_grade_a(type_str: str) -> bool:
-    """유형 문자열이 A급인지 확인합니다. (예: 'A', 'A급', 'a급')"""
-    return bool(re.search(r'\bA급?\b', type_str, re.IGNORECASE))
