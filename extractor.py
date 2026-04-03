@@ -30,20 +30,22 @@ def parse_customer_info(text: str) -> dict:
     lines = [line.strip() for line in text.strip().split('\n')]
     non_empty = [l for l in lines if l]
 
-    # --- 접수월 / 접수일: 첫 줄 "M/D" 형식 ---
+    # --- 접수월 / 접수일: 첫 줄에서 "M/D" 추출 (뒤에 다른 내용 있어도 인식) ---
     if non_empty:
-        m = re.match(r'^(\d{1,2})/(\d{1,2})$', non_empty[0])
+        m = re.match(r'^(\d{1,2})/(\d{1,2})', non_empty[0])
         if m:
             result['접수월'] = m.group(1)
-            result['접수일'] = non_empty[0]   # "4/2" 형태 그대로 입력
+            result['접수일'] = f'{m.group(1)}/{m.group(2)}'
 
-    # --- 구분 / 유형: 두 번째 줄 "구분 유형" 형식 ---
-    if len(non_empty) > 1:
-        parts = non_empty[1].split()
-        if len(parts) >= 1:
-            result['구분'] = parts[0]
-        if len(parts) >= 2:
-            result['유형'] = parts[1]
+    # --- 구분 / 유형: 날짜가 없는 첫 번째 줄에서 추출 ---
+    for line in non_empty:
+        if not re.match(r'^\d{1,2}/\d{1,2}', line):
+            parts = line.split()
+            if len(parts) >= 1:
+                result['구분'] = parts[0]
+            if len(parts) >= 2:
+                result['유형'] = parts[1]
+            break
 
     # --- A급 DB: 텍스트 전체에 "A" 포함 시 체크 ---
     if re.search(r'\bA\b', text):
