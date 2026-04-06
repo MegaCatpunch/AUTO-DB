@@ -5,9 +5,8 @@ import streamlit as st
 from google.oauth2.service_account import Credentials
 
 from extractor import COLUMN_ORDER, parse_customer_info
-from sheets import COLUMN_POSITIONS, append_customer
+from sheets import COLUMN_POSITIONS
 
-# ── 페이지 설정 ──────────────────────────────────────────────
 st.set_page_config(page_title="고객 정보 자동 입력", page_icon="📋", layout="centered")
 
 SCOPES = [
@@ -15,9 +14,8 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive",
 ]
 
-# ── 설정 로드 ─────────────────────────────────────────────────
+
 def load_config():
-    """로컬: config.json 사용 / Streamlit Cloud: secrets 사용"""
     if "spreadsheet" in st.secrets:
         return {
             "spreadsheet_id": st.secrets["spreadsheet"]["id"],
@@ -40,7 +38,6 @@ def get_credentials(config):
     return Credentials.from_service_account_file(config["credentials"], scopes=SCOPES)
 
 
-# ── UI ────────────────────────────────────────────────────────
 st.title("📋 고객 정보 자동 입력")
 st.caption("고객 정보를 붙여넣으면 구글 스프레드시트에 자동으로 입력됩니다.")
 
@@ -57,7 +54,6 @@ submit_clicked = col2.button("✅ 스프레드시트에 입력", use_container_w
 if text and (parse_clicked or submit_clicked):
     data = parse_customer_info(text)
 
-    # ── 미리보기 테이블 ──────────────────────────────────────
     st.subheader("파싱 결과")
     col_left, col_right = st.columns(2)
     items = [(k, v) for k, v in data.items() if k in COLUMN_ORDER]
@@ -69,7 +65,6 @@ if text and (parse_clicked or submit_clicked):
         for k, v in items[half:]:
             st.markdown(f"**{k}** : {v if v else '_(비어있음)_'}")
 
-    # ── 스프레드시트 입력 ────────────────────────────────────
     if submit_clicked:
         try:
             config = load_config()
