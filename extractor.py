@@ -27,6 +27,23 @@ def parse_customer_info(text: str) -> dict:
                 result['유형'] = parts[1]
             break
 
+    if '성함' in text:
+        _parse_labeled(text, result)
+    else:
+        _parse_positional(non_empty, result)
+
+    m = re.search(r'(0\d{1,2}[-\s]?\d{3,4}[-\s]?\d{4})', text)
+    if m:
+        result['연락처'] = m.group(1).strip()
+
+    m = re.search(r'>\s*(.+)', text)
+    result['최종담당'] = m.group(1).strip() if m else '미배정'
+
+    for line in non_empty:
+        if line.startswith('1차'):
+            result['N열'] = line
+            break
+
     result['J열'] = '진행중'
     result['Q열'] = '진성'
 
@@ -42,6 +59,10 @@ def parse_customer_info(text: str) -> dict:
     if re.search(r'\bA\b', text):
         result['A급 DB'] = 'O'
 
+    return result
+
+
+def _parse_labeled(text: str, result: dict) -> None:
     m = re.search(r'성함\s*:\s*(.+)', text)
     if m:
         name = m.group(1).strip()
@@ -50,14 +71,6 @@ def parse_customer_info(text: str) -> dict:
     m = re.search(r'희망\s*지역\s*:\s*(.+)', text)
     if m:
         result['희망지역'] = m.group(1).strip().replace(' ', '')
-
-    m = re.search(r'>\s*(.+)', text)
-    if m:
-        result['최종담당'] = m.group(1).strip()
-
-    m = re.search(r'(0\d{1,2}[-\s]?\d{3,4}[-\s]?\d{4})', text)
-    if m:
-        result['연락처'] = m.group(1).strip()
 
     memo_parts = []
     m = re.search(r'현재\s*직업\s*:\s*(.+)', text)
@@ -71,7 +84,24 @@ def parse_customer_info(text: str) -> dict:
         memo_parts.append(f'창업자금: {m.group(1).strip()}')
     result['첫메모'] = ' / '.join(memo_parts)
 
-    return result
+
+def _parse_positional(non_empty: list, result: dict) -> None:
+    candidates = []
+    for line in non_empty:
+        if re.match(r'^\d{1,2}/\d{1,2}', line):
+            continue
+        if line == f"{result['구분']} {result['유형']}".strip() or line == result['구분']:
+            continue
+        if re.match(r'^0\d{1,2}[-\s]?\d{3,4}[-\s]?\d{4}', line):
+            continue
+        if line.startswith('1차'):
+            continue
+        candidates.append(line)
+
+    if len(candidates) >= 1:
+        result['이름'] = re.sub(r'\s*\([남녀]\)', '', candidates[0]).strip()
+    if len(candidates) >= 2:
+        result['희망지역'] = candidates[1].replace(' ', '')
 
 
 def _today() -> str:
