@@ -117,7 +117,7 @@ def _parse_positional(non_empty: list, result: dict) -> None:
 
 def _strip_gender(name: str) -> str:
     """이름에서 (남)/(여) 제거"""
-    return re.sub(r'\s*\([남녀]\)', '', name).strip()
+    return re.sub(r'\s*\([남여]\)', '', name).strip()
 
 
 def _today() -> str:
