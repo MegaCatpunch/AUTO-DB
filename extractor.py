@@ -36,7 +36,7 @@ def parse_customer_info(text: str) -> dict:
     if m:
         result['연락처'] = m.group(1).strip()
 
-    m = re.search(r'>\s*(.+)', text)
+    m = re.search(r'^[>＞]\s*(.+)', text, re.MULTILINE)
     result['최종담당'] = m.group(1).strip() if m else '미배정'
 
     for line in non_empty:
@@ -65,8 +65,7 @@ def parse_customer_info(text: str) -> dict:
 def _parse_labeled(text: str, result: dict) -> None:
     m = re.search(r'성함\s*:\s*(.+)', text)
     if m:
-        name = m.group(1).strip()
-        result['이름'] = re.sub(r'\s*\([남녀]\)', '', name).strip()
+        result['이름'] = _strip_gender(m.group(1))
 
     m = re.search(r'희망\s*지역\s*:\s*(.+)', text)
     if m:
@@ -96,12 +95,18 @@ def _parse_positional(non_empty: list, result: dict) -> None:
             continue
         if line.startswith('1차'):
             continue
+        if re.match(r'^[>＞]', line):
+            continue
         candidates.append(line)
 
     if len(candidates) >= 1:
-        result['이름'] = re.sub(r'\s*\([남녀]\)', '', candidates[0]).strip()
+        result['이름'] = _strip_gender(candidates[0])
     if len(candidates) >= 2:
         result['희망지역'] = candidates[1].replace(' ', '')
+
+
+def _strip_gender(name: str) -> str:
+    return re.sub(r'\s*\([\ub0a8\ub140]\)', '', name).strip()
 
 
 def _today() -> str:
