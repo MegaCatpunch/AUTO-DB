@@ -40,8 +40,8 @@ def parse_customer_info(text: str) -> dict:
     if m:
         result['연락처'] = m.group(1).strip()
 
-    # --- 최종담당: ">" 다음 이름, 없으면 "미배정" ---
-    m = re.search(r'>\s*(.+)', text)
+    # --- 최종담당: 줄 맨 앞의 ">" 다음 이름, 없으면 "미배정" ---
+    m = re.search(r'^[>＞]\s*(.+)', text, re.MULTILINE)
     result['최종담당'] = m.group(1).strip() if m else '미배정'
 
     # --- 1차상담결과: "1차"로 시작하는 줄 → N열 ---
@@ -75,8 +75,7 @@ def _parse_labeled(text: str, result: dict) -> None:
     """레이블 형식: 성함 :, 희망 지역 :, 현재 직업 : 등"""
     m = re.search(r'성함\s*:\s*(.+)', text)
     if m:
-        name = m.group(1).strip()
-        result['이름'] = re.sub(r'\s*\([남녀]\)', '', name).strip()
+        result['이름'] = _strip_gender(m.group(1))
 
     m = re.search(r'희망\s*지역\s*:\s*(.+)', text)
     if m:
@@ -111,9 +110,14 @@ def _parse_positional(non_empty: list, result: dict) -> None:
         candidates.append(line)
 
     if len(candidates) >= 1:
-        result['이름'] = re.sub(r'\s*\([남녀]\)', '', candidates[0]).strip()
+        result['이름'] = _strip_gender(candidates[0])
     if len(candidates) >= 2:
         result['희망지역'] = candidates[1].replace(' ', '')
+
+
+def _strip_gender(name: str) -> str:
+    """이름에서 (남)/(여) 제거"""
+    return re.sub(r'\s*\([남녀]\)', '', name).strip()
 
 
 def _today() -> str:
