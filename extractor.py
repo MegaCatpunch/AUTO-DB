@@ -68,6 +68,9 @@ def parse_customer_info(text: str) -> dict:
     if re.search(r'\bA\b', text):
         result['A급 DB'] = 'O'
 
+    if '미기재' in text:
+        result['이름'] = '미기재'
+
     return result
 
 
