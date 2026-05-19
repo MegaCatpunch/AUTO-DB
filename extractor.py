@@ -24,7 +24,11 @@ def parse_customer_info(text: str) -> dict:
         if not re.match(r'^\d{1,2}/\d{1,2}', line):
             parts = line.split()
             if len(parts) >= 1:
-                result['구분'] = parts[0]
+                gubun = parts[0]
+                # PC는 대문자로 통일
+                if gubun.upper() == 'PC':
+                    gubun = 'PC'
+                result['구분'] = gubun
             if len(parts) >= 2:
                 result['유형'] = parts[1]
             break
@@ -47,7 +51,12 @@ def parse_customer_info(text: str) -> dict:
     # --- 1차상담결과: "1차"로 시작하는 줄 → N열 ---
     for line in non_empty:
         if line.startswith('1차'):
-            result['N열'] = line
+            value = line
+            # "1차 부재" → "1차부재" (띄어쓰기 제거)
+            if '부재' in value:
+                value = re.sub(r'1차\s*부재', '1차부재', value)
+                result['첫메모'] = '1차부재'
+            result['N열'] = value
             break
 
     # --- J열 / Q열 기본값 ---
