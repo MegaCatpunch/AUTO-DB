@@ -22,7 +22,11 @@ def parse_customer_info(text: str) -> dict:
         if not re.match(r'^\d{1,2}/\d{1,2}', line):
             parts = line.split()
             if len(parts) >= 1:
-                result['구분'] = parts[0]
+                gubun = parts[0]
+                # PC는 대문자로 통일
+                if gubun.upper() == 'PC':
+                    gubun = 'PC'
+                result['구분'] = gubun
             if len(parts) >= 2:
                 result['유형'] = parts[1]
             break
@@ -41,7 +45,12 @@ def parse_customer_info(text: str) -> dict:
 
     for line in non_empty:
         if line.startswith('1차'):
-            result['N열'] = line
+            value = line
+            # "1차 부재" → "1차부재" (띄어쓰기 제거)
+            if '부재' in value:
+                value = re.sub(r'1차\s*부재', '1차부재', value)
+                result['첫메모'] = '1차부재'
+            result['N열'] = value
             break
 
     result['J열'] = '진행중'
@@ -78,9 +87,9 @@ def _parse_labeled(text: str, result: dict) -> None:
     m = re.search(r'방문\s*경험\s*:\s*(.+)', text)
     if m:
         memo_parts.append(f'방문경험: {m.group(1).strip()}')
-    m = re.search(r'창업\s*자금\s*:\s*(.+)', text)
+    m = re.search(r'자가\s*여부\s*:\s*(.+)', text)
     if m:
-        memo_parts.append(f'창업자금: {m.group(1).strip()}')
+        memo_parts.append(f'자가여부: {m.group(1).strip()}')
     result['첫메모'] = ' / '.join(memo_parts)
 
 
@@ -106,7 +115,6 @@ def _parse_positional(non_empty: list, result: dict) -> None:
 
 
 def _strip_gender(name: str) -> str:
-    """이름에서 (남)/(여) 제거"""
     return re.sub(r'\s*\([남여]\)', '', name).strip()
 
 
