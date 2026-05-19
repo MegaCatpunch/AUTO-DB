@@ -101,7 +101,10 @@ def _parse_positional(non_empty: list, result: dict) -> None:
     for line in non_empty:
         if re.match(r'^\d{1,2}/\d{1,2}', line):
             continue
-        if line == f"{result['구분']} {result['유형']}".strip() or line == result['구분']:
+        # 대소문자 무시하고 구분/유형 줄 비교
+        line_upper = line.upper()
+        gubun_yuhyung = f"{result['구분']} {result['유형']}".strip().upper()
+        if line_upper == gubun_yuhyung or line_upper == result['구분'].upper():
             continue
         if re.match(r'^0\d{1,2}[-\s]?\d{3,4}[-\s]?\d{4}', line):
             continue
