@@ -97,9 +97,9 @@ def _parse_labeled(text: str, result: dict) -> None:
     m = re.search(r'방문\s*경험\s*:\s*(.+)', text)
     if m:
         memo_parts.append(f'방문경험: {m.group(1).strip()}')
-    m = re.search(r'창업\s*자금\s*:\s*(.+)', text)
+    m = re.search(r'자가\s*여부\s*:\s*(.+)', text)
     if m:
-        memo_parts.append(f'창업자금: {m.group(1).strip()}')
+        memo_parts.append(f'자가여부: {m.group(1).strip()}')
     result['첫메모'] = ' / '.join(memo_parts)
 
 
